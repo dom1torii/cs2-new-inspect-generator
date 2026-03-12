@@ -1,4 +1,6 @@
 # cs2-new-inspect-generator
+Try -> https://domitori.xyz/new-skins 
+
 This app can be used to get newly added CS2 skins using items_game.txt diffs.  
 By default it will try to fetch diff.diff file from `public/` folder.  
 To get the diff file as quick as possible after release i recommend using SteamDB's [GameTracking-CS2](https://github.com/SteamDatabase/GameTracking-CS2/).  
