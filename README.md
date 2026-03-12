@@ -16,3 +16,5 @@ else
   rm "$TEMP"
 fi
 ```
+
+Without dr3fty's [cs2-inspect-gen](https://github.com/dr3fty/cs2-inspect-gen) i wouldnt be able to make this.
