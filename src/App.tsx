@@ -137,10 +137,7 @@ function App() {
   const [defIdx, setDefIdx] = useState<number | null>(Object.values(defIndexMap)[0]);
   const [pattern, setPattern] = useState<number>(1);
   const [float, setFloat] = useState<number>(0);
-
-  useEffect(() => {
-    getDiffSkins();
-  }, []);
+  const [customDefIdx, setCustomDefIdx] = useState<boolean>(false);
 
   async function getDiffSkins() {
     const diffText = await fetch("/new-skins/diff.diff").then((r) => r.text());
@@ -175,6 +172,10 @@ function App() {
     }
     setDiffSkins(skins);
   }
+
+  useEffect(() => {
+    getDiffSkins();
+  }, []);
 
   // i barely understand whats happening here pls dont judge
   const generateInspect = (proto: Uint8Array) => {
@@ -238,17 +239,55 @@ function App() {
     setDefIdx(idx);
   };
 
+  function getDefIdxLink() {
+    const root = protobuf.Root.fromJSON(econ);
+    const EconItem = root.lookupType("CEconItemPreviewDataBlock");
+
+    const message = EconItem.create({
+      defindex: defIdx,
+      paintseed: pattern,
+      paintwear: floatToUint32BE(float),
+    });
+    const encoded = EconItem.encode(message).finish();
+    const generatedPayload = generateInspect(encoded);
+
+    setLinks([{
+      name: `defindex ${defIdx}`,
+      link: `steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20${generatedPayload}`,
+    }]);
+  }
+
   return (
     <>
       <form>
         <label htmlFor="defindex">Choose item type: </label>
-        <select name="defindex" id="defindex" onChange={handleDefChange}>
-          {Object.entries(defIndexMap).map(([name, idx]) => (
-            <option key={idx} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
+        <label>
+          <input
+            type="checkbox"
+            checked={customDefIdx}
+            onChange={(e) => {
+              setCustomDefIdx(e.target.checked);
+              setDefIdx(null);
+            }}
+          />
+          {" Custom def index"}
+        </label>
+        {customDefIdx ? (
+          <input
+            type="number"
+            id="defindex"
+            onChange={(e) => setDefIdx(Number(e.target.value))}
+            placeholder="Enter def index..."
+          />
+        ) : (
+          <select name="defindex" id="defindex" onChange={handleDefChange}>
+            {Object.entries(defIndexMap).map(([name, idx]) => (
+              <option key={idx} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        )}
         <label htmlFor="pattern">Item pattern: </label>
         <input
           type="number"
@@ -265,7 +304,6 @@ function App() {
           defaultValue={0}
           onChange={(e) => setFloat(Number(e.target.value))}
         />
-
         <div>
           {diffSkins.map((skin) => (
             <div key={skin.id}>
@@ -281,6 +319,7 @@ function App() {
           ))}
         </div>
       </form>
+      <button onClick={getDefIdxLink}>Generate without skin</button>
       {checkedSkins.length > 0 && <button onClick={getAllLinks}>Generate inspect links</button>}
       {links.map((link) => (
         <div key={link.name}>
